@@ -32,10 +32,7 @@ const FilterWidget = (el, json, visibleControls) => {
       columns: json.columns,
       data: json.data.filter((dataItem) => {
         for (const [columnIndex, filterValue] of Array.from(filter.entries())) {
-          if (
-            filterValue !== "" &&
-            String(dataItem[columnIndex]) !== filterValue
-          ) {
+          if (filterValue !== "" && dataItem[columnIndex] !== filterValue) {
             return false;
           }
         }
@@ -64,20 +61,25 @@ const FilterWidget = (el, json, visibleControls) => {
         option.textContent = label;
       };
 
-      addOption("", "—");
-      [...new Set(json.data.map((dataItem) => dataItem[columnIndex]))].forEach(
-        (value) => {
-          const label =
-            column.type === "unixtimestamp"
-              ? new Date(value).toLocaleString()
-              : value;
-          addOption(value, label);
-        }
-      );
+      const options = [
+        { value: "", label: "—" },
+        ...[...new Set(json.data.map((dataItem) => dataItem[columnIndex]))].map(
+          (value) => ({
+            value,
+            label:
+              column.type === "unixtimestamp"
+                ? new Date(value).toLocaleString()
+                : value,
+          })
+        ),
+      ];
+      options.forEach(({ value, label }) => addOption(value, label));
 
-      select.onchange = (event) => {
+      select.onchange = () => {
         filterStream.next(
-          filterStream.getValue().set(columnIndex, event.currentTarget.value)
+          filterStream
+            .getValue()
+            .set(columnIndex, options[select.selectedIndex].value)
         );
       };
     });
@@ -182,12 +184,16 @@ window.onload = () => {
     "value",
   ]);
 
-  VisualizerWidget(document.getElementById("js-table-visible-columns"), filter.jsonStream, [
-    "name",
-    "date",
-  ]);
+  VisualizerWidget(
+    document.getElementById("js-table-visible-columns"),
+    filter.jsonStream,
+    ["name", "date"]
+  );
 
-  VisualizerWidget(document.getElementById("js-table-all-columns"), filter.jsonStream);
+  VisualizerWidget(
+    document.getElementById("js-table-all-columns"),
+    filter.jsonStream
+  );
 
   VisualizerWidget(
     document.getElementById("js-table-static"),
