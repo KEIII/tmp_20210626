@@ -124,9 +124,11 @@ const VisualizerWidget = (el, jsonStream, visibleColumns) => {
     json.data.forEach((dataItem) => {
       const tr = document.createElement("tr");
       tbody.append(tr);
-      columns.forEach(({ columnIndex }) => {
+      columns.forEach(({ column, columnIndex }) => {
         const td = document.createElement("td");
-        td.textContent = dataItem[columnIndex];
+        td.textContent = column.type === 'unixtimestamp'
+          ? new Date(dataItem[columnIndex]).toLocaleString()
+          : dataItem[columnIndex];
         tr.append(td);
       });
     });
